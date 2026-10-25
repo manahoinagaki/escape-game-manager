@@ -1,0 +1,139 @@
+// =====================================================
+// コーチマーク・ツールチップ 組み込みサンプル
+// =====================================================
+//
+// このファイルは実際のコードではありません。
+// Admin.tsx と Customer.tsx への組み込み方の参考例です。
+// =====================================================
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 【Admin.tsx への組み込み例】
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// --- 1. import を追加 ---
+import Tooltip   from '../shared/components/Tooltip';
+import CoachMark from '../shared/components/CoachMark';
+import type { CoachMarkStep } from '../shared/components/CoachMark';
+
+// --- 2. ガイドのステップ定義（Admin.tsx の外、コンポーネントの前に書く） ---
+const ADMIN_GUIDE_STEPS: CoachMarkStep[] = [
+  {
+    // ★ ハイライトしたい要素に id="..." を付けておく必要がある
+    targetId:    'tab-呼出',
+    title:       '📢 呼出タブ',
+    description: '呼出中のお客様の一覧です。担当するお客様を選んで案内しましょう。',
+    position:    'bottom',
+  },
+  {
+    targetId:    'menu-trigger',     // ハンバーガーボタンに id="menu-trigger" を付ける
+    title:       '⚙️ 設定メニュー',
+    description: 'レイアウトや並び順、テーマの変更ができます。',
+    position:    'bottom',
+  },
+  {
+    targetId:    'issue-card',       // 新規発行カードに id="issue-card" を付ける
+    title:       '🎫 整理券の発行',
+    description: '人数と難易度を選んで「発行」ボタンを押すと整理券が発行されます。',
+    position:    'bottom',
+  },
+  {
+    // targetId なし → 画面中央にポップアップが出る
+    title:       '✅ ガイド完了！',
+    description: 'メニュー → 「ガイドを再表示」から、いつでも確認できます。',
+    position:    'center',
+  },
+];
+
+// --- 3. Admin コンポーネント内の JSX の最後に追加 ---
+const Admin: React.FC = () => {
+  // ... 既存のコード ...
+
+  return (
+    <div className="admin-page">
+      {/* ... 既存の JSX ... */}
+
+      {/* ツールチップの使用例（RegistrationCard.tsx 内などで） */}
+      <Tooltip text="担当を別スタッフに引き継ぎます">
+        <button className="takeover-btn">🔄 引き継ぐ</button>
+      </Tooltip>
+
+      <Tooltip text="ステータスを1つ前に戻します" position="right">
+        <button className="back-status-btn">↩️ 1つ戻す</button>
+      </Tooltip>
+
+      {/* コーチマーク：ここに1行追加するだけ */}
+      <CoachMark
+        steps={ADMIN_GUIDE_STEPS}
+        storageKey="admin-guide-v1"   // ← 変更すると全員に再表示される
+      />
+    </div>
+  );
+};
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 【Customer.tsx への組み込み例】
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const CUSTOMER_GUIDE_STEPS: CoachMarkStep[] = [
+  {
+    targetId:    'customer-number-display',
+    title:       '🎫 あなたの番号',
+    description: 'この番号でお呼びします。画面を閉じないようにしてください。',
+    position:    'bottom',
+  },
+  {
+    targetId:    'customer-status-bar',
+    title:       '📊 現在の状況',
+    description: '呼出中の番号と、あなたの前に何組いるかが確認できます。',
+    position:    'top',
+  },
+  {
+    title:       '準備完了！',
+    description: 'お呼びするまで、この画面を表示したままお待ちください。',
+    position:    'center',
+  },
+];
+
+// Customer.tsx の JSX の最後に追加
+<CoachMark
+  steps={CUSTOMER_GUIDE_STEPS}
+  storageKey="customer-guide-v1"
+/>
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 【SideMenu からガイドを再表示する例】
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Admin.tsx
+const [restartGuide, setRestartGuide] = React.useState<(() => void) | null>(null);
+
+<CoachMark
+  steps={ADMIN_GUIDE_STEPS}
+  storageKey="admin-guide-v1"
+  onReady={(restart) => setRestartGuide(() => restart)}   // ← restart を受け取る
+/>
+
+// SideMenu にボタンを追加
+<button onClick={() => restartGuide?.()}>
+  🔄 操作ガイドを再表示
+</button>
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 【id を付けるべき要素一覧（Admin）】
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//
+//   要素                     付けるid の例
+//   ────────────────────────────────────────
+//   ハンバーガーボタン        id="menu-trigger"
+//   日付モードセレクト        id="day-select"
+//   整理券発行カード全体      id="issue-card"
+//   呼出タブボタン            id="tab-呼出"
+//   待機タブボタン            id="tab-待機"
+//   全リセットボタン          id="reset-btn"
+//
+// 例：AdminHeader.tsx のハンバーガーボタン
+//   <button id="menu-trigger" className="menu-trigger" ...>

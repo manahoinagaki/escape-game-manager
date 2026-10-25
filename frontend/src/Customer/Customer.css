@@ -1,0 +1,952 @@
+/* =================================================
+   src/Customer/Customer.css — お客様向け画面のスタイル
+   =================================================
+   
+   📋 このファイルの構成
+   
+     1. フォント読み込み
+     2. カラー変数・共通設定（:root）
+     3. モード別カラー（1日目 / 2日目 / テスト）
+     4. アプリ全体レイアウト
+     5. ヘッダー
+     6. メインコンテンツエリア
+     7. カード共通スタイル
+     8. フッター・タブバー・呼出バー
+     9. 待ち状況タブ（番号入力・待機中・呼出・案内）
+    10. 謎解きタブ
+    11. 遊び方タブ
+    12. アニメーション
+
+   🎨 カラーパレット
+     メイン    : モードによって変わる（--c-main）
+     アクセント : #FFE135（イエロー）
+     暗め      : #1A1A2E（ネイビー）
+     背景      : #F0F2F5（薄いグレー）
+
+   🔧 よく変更する箇所
+     モードの色       : .header-mode-○○ のブロック
+     ボタンの影の色   : --c-shadow 変数
+     カードの角丸     : --radius-lg / --radius-md / --radius-sm
+     待ち時間の数字色 : .hero-time span の color
+================================================= */
+
+/* =================================================
+   1. フォント読み込み
+   Zen Maru Gothic : 日本語テキスト全般
+   Bebas Neue      : 数字・英語タイトル用
+================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Bebas+Neue&display=swap');
+
+/* =================================================
+   2. カラー変数・共通設定
+   ここで変数を定義しておくと、ファイル全体で使い回せる
+   ↓ 変数を変えると画面全体の色が一括で変わる
+================================================= */
+:root {
+  --c-main:       #007bff;              /* メインカラー（モードで上書きされる） */
+  --c-shadow:     #0056b3;              /* ボタンの影の色（モードで上書きされる） */
+  --c-main-pale:  rgba(0, 123, 255, 0.15); /* メインカラーの薄い版（フォーカス時など） */
+  --c-yellow:     #FFE135;              /* アクセントカラー（呼出アラートの枠など） */
+  --c-dark:       #1A1A2E;              /* 暗い色（呼出バーなど、テーマに関係なく常に暗い箇所） */
+  --c-green:      #2ECC71;              /* 緑（案内アラートなど） */
+  --c-red:        #E74C3C;              /* 赤（注意メッセージなど） */
+  --c-bg:         #F0F2F5;              /* 背景色（ダークモードで反転） */
+  --c-card:       #FFFFFF;              /* カードの背景色（ダークモードで反転） */
+  --c-text:       #1A1A2E;              /* 標準テキスト色（ダークモードで反転） */
+  --c-muted:      #888;                 /* 薄いテキスト色（補足説明など。ダークモードで反転） */
+  --c-border:     #eee;                 /* 罫線・区切り線の色 */
+  --c-surface-alt:#f8f9fa;              /* カード内の薄い背景（画像枠・解説文など） */
+  --c-active-bg:  #f5f5f5;              /* ボタン押下時などの薄い背景 */
+  --c-hero-grad-1:#fff7f3;              /* 待ち時間カードのグラデーション（上） */
+  --c-hero-grad-2:#fff3e0;              /* 待ち時間カードのグラデーション（下） */
+  --c-alert-grad-1:#fff9c4;             /* 呼出アラートのグラデーション（上） */
+  --c-alert-grad-2:#fff3cd;             /* 呼出アラートのグラデーション（下） */
+  --c-alert-guide-grad-1:#e8f5e9;       /* 案内アラートのグラデーション（上） */
+  --c-alert-guide-grad-2:#f1f8e9;       /* 案内アラートのグラデーション（下） */
+  --c-hint-bg:    #fff8e1;              /* ヒント枠の背景 */
+  --c-hint-border:#ffe082;              /* ヒント枠の枠線 */
+  --c-hint-text:  #6d5a00;              /* ヒント枠の文字色 */
+  --c-result-correct-bg: #e8f5e9;       /* 正解アイコンの背景 */
+  --c-result-wrong-bg:   #fdecea;       /* 不正解アイコンの背景 */
+  --radius-lg:    20px;                 /* 大きい角丸（カード全体など） */
+  --radius-md:    14px;                 /* 中くらいの角丸（ボタンなど） */
+  --radius-sm:    8px;                  /* 小さい角丸（バッジなど） */
+  --shadow:       0 4px 20px rgba(0,0,0,0.10);  /* 標準の影 */
+  --shadow-lg:    0 8px 32px rgba(0,0,0,0.15);  /* 大きい影 */
+}
+
+/* =================================================
+   ダークモード（Customer.tsx がルート要素に data-theme="dark" を付与すると切り替わる）
+================================================= */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg:         #12141c;
+    --c-card:       #1e2130;
+    --c-text:       #eef0f5;
+    --c-muted:      #9aa0b4;
+    --c-border:     #333747;
+    --c-surface-alt:#262a3a;
+    --c-active-bg:  #2a2e40;
+    --c-hero-grad-1:#2a2438;
+    --c-hero-grad-2:#241f2e;
+    --c-alert-grad-1:#3a341a;
+    --c-alert-grad-2:#332d16;
+    --c-alert-guide-grad-1:#1c3324;
+    --c-alert-guide-grad-2:#172d1f;
+    --c-hint-bg:    #3a3419;
+    --c-hint-border:#6b5a1f;
+    --c-hint-text:  #f0d789;
+    --c-result-correct-bg: #1c3324;
+    --c-result-wrong-bg:   #3a1f1c;
+    --shadow:       0 4px 20px rgba(0,0,0,0.35);
+    --shadow-lg:    0 8px 32px rgba(0,0,0,0.45);
+  }
+}
+
+/* ボタン全体に共通で適用 */
+button { cursor: pointer; font-family: inherit; }
+
+/* =================================================
+   3. モード別カラー
+   Firestoreの "Day" フィールドに応じてクラスが切り替わる
+   → Customer.tsx の header-mode-${day} が対応
+   
+   ⚠️ --c-main と --c-shadow と --c-main-pale をセットで変える
+================================================= */
+.header-mode-1日目 { 
+  --c-main: #7b8cde; 
+  --c-shadow: #4a5bbf; 
+  --c-main-pale: rgba(123,140,222,0.15); 
+}/* または #cbcbff,#1a1a2e */
+.header-mode-2日目 { 
+  --c-main: #e94560; 
+  --c-shadow: #b5213d; 
+  --c-main-pale: rgba(123,140,222,0.15); 
+} /* または #ecc1ff,#4a0e4e,#d87cee */
+.header-mode-テスト { 
+  --c-main: #ff9d00; 
+  --c-shadow: #c97a00; 
+  --c-main-pale: rgba(255,157,0,0.15); 
+}
+
+/* --- モード別ヘッダー背景色 --- */
+.header-mode-1日目 .app-header,
+.header-mode-2日目 .app-header {
+  background: var(--c-main);
+  border-bottom-color: var(--c-main);
+  color: white;
+}
+
+.header-mode-テスト .app-header {
+  background: var(--c-main);
+  border-bottom-color: var(--c-main);
+  color: black; /* テストモードは文字を黒に */
+}
+
+/* --- モード別バッジ（1日目・2日目は白抜き、テストは点滅） --- */
+.header-mode-1日目 .day-badge,
+.header-mode-2日目 .day-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid white;
+}
+
+.header-mode-テスト .day-badge {
+  background: #fff;
+  color: #d35400;
+  animation: blink 1s infinite; /* 点滅でテストモードをわかりやすく */
+}
+
+/* =================================================
+   4. アプリ全体レイアウト
+   スマホの画面全体に固定して、スクロールはメインエリアのみ
+================================================= */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;  /* スマホ対応 */
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* =================================================
+   5. ヘッダー
+================================================= */
+.app-header {
+  flex-shrink: 0;  /* ヘッダーは縮まない */
+  background: var(--c-dark);
+  width: 100%;
+  background: #333;  /* デフォルト背景（モードで上書きされる） */
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: space-between;
+  z-index: 10;
+  border-bottom: 3px solid var(--c-main);
+}
+
+/* タイトル文字 */
+.app-header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: 2px;
+  color: var(--c-text);
+}
+
+/* モード表示バッジ（「1日目」「テスト」など） */
+.day-badge {
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--c-main);
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+/* クイズ回答中のコンパクトヘッダー
+   → Customer.tsx で quizStatus === 'playing' のときに適用される */
+.app-header.header-mini {
+  padding: 6px 12px ; /* 上下余白を極限まで減らす */
+  min-height: 40px; /* 通常より低く設定 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* タイトルの文字を小さくして横に並べる */
+.app-header.header-mini h1 {
+  font-size: 0.9rem; /* タイトルを小さく */
+  margin: 0;
+}
+
+/* バッジも小さくして邪魔にならないように */
+.app-header.header-mini .day-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  margin: 0;
+}
+
+/* =================================================
+   6. メインコンテンツエリア
+   ここだけ縦スクロールする
+================================================= */
+.app-main {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto; /* 縦スクロール */
+  -webkit-overflow-scrolling: touch; /*慣性スクロール*/
+  background: var(--c-bg);
+}
+
+/* 中身の最大幅・余白設定 */
+.content-inner {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px 14px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px; /* カード間のスペース */
+}
+
+/* タブパネル（フェードインアニメーション付き） */
+.tab-panel {
+  width: 100%;
+  animation: fadeIn 0.3s ease;
+}
+
+/* =================================================
+   7. カード共通スタイル
+   login-card / status-card / quiz-card / guide-card に適用
+================================================= */
+.login-card,
+.status-card,
+.quiz-card,
+.guide-card {
+  width: 100%;
+  background: var(--c-card);
+  border-radius: var(--radius-lg);
+  padding: 24px 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* =================================================
+   8. フッター・タブバー・呼出バー
+================================================= */
+/* フッター全体 */
+.app-footer {
+  flex-shrink: 0;
+  width: 100%;
+  background: var(--c-card);
+  border-top: 2px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+  z-index: 1000;
+}
+
+/* タブバー（待ち状況 / 謎解き / 遊び方） */
+.bottom-tabs {
+  display: flex;
+  height: 58px;
+}
+
+/* 各タブボタン */
+.tab-item {
+  flex: 1;
+  border: none;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-muted);
+  transition: all 0.15s;
+  gap: 2px;
+}
+
+/* 選択中のタブ */
+.tab-item.active {
+  color: var(--c-main);            /* モードカラーで強調 */
+  background: var(--c-main-pale);  /* 薄い背景色 */
+}
+.tab-item.active .tab-icon {
+  transform: scale(1.15);          /* 少し大きくする */
+}
+
+.tab-icon  { font-size: 1.4rem; transition: transform 0.15s; }
+.tab-label { font-size: 0.68rem; font-weight: 700; }
+
+/* 呼出中バー（フッター下部に常時表示） */
+.calling-bar {
+  background: var(--c-dark);
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* 呼出中の番号（黄色・大きいフォント） */
+.calling-numbers {
+  color: var(--c-yellow);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 2px;
+  margin-left: 6px;
+}
+
+/* =================================================
+   9. 待ち状況タブ
+================================================= */
+/* ----- 番号入力フォーム ----- */
+.login-card h2 {
+  font-size: 1.3rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: var(--c-text);
+}
+.login-card p {
+  font-size: 0.85rem;
+  color: var(--c-muted);
+  margin-bottom: 16px;
+}
+/*入力場所*/
+.login-card input {
+  width: 70%;
+  padding: 14px;
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-align: center;
+  background: var(--c-card);
+  border: 3px solid var(--c-text);
+  border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 3px;
+  color: var(--c-main);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 14px;
+}
+.login-card input:focus {
+  border-color: var(--c-main);
+  box-shadow: 0 0 0 3px var(--c-main-pale);
+}
+
+/* 確認ボタン（押し込み感のある影付き） */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--c-main);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: 0 4px 0 var(--c-shadow);
+  transition: all 0.15s;
+}
+.login-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--c-shadow);
+}
+
+/* -------------------------------------------------
+   待機中：待ち時間
+------------------------------------------------- */
+.waiting-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/*整理番号（小さい表示）*/
+.number-display-small {
+  font-size: 0.85rem;
+  color: var(--c-muted);
+  font-weight: 700;
+}
+/*番号*/
+.number-display-small span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  color: var(--c-text);
+  letter-spacing: 2px;
+}
+
+/* 待ち時間のメインカード（枠付き） 　*/
+.wait-time-hero {
+  width: 100%;
+  background: linear-gradient(135deg, var(--c-hero-grad-1), var(--c-hero-grad-2));
+  border: 3px solid var(--c-main);
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+  position: relative;
+  overflow: hidden;
+}
+/* 砂時計アイコン（装飾） */
+.wait-time-hero::before {
+  content: '⏳';
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-size: 2rem;
+  opacity: 0.2;
+}
+
+/* 「ご案内までおよそ」ラベル */
+.hero-label { 
+  font-size: 0.82rem;
+  color: var(--c-muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* 待ち時間の数字（大きく表示） */
+.hero-time {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-text);
+  line-height: 1;
+}
+.hero-time span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;      /* ← 数字の大きさを変えたい場合はここ */
+  color: var(--c-main); /* ← 数字の色（モードカラーに連動） */
+  letter-spacing: 2px;
+  display: block;
+  line-height: 1.1;
+}
+
+/* 「5号館付近でお待ちください」などの注意文 */
+.hero-note {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--c-red);
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(231,76,60,0.08);
+  border-radius: var(--radius-sm);
+}
+
+/*「あなたの前に○組」の表示 */
+.ahead-count {
+  font-size: 0.85rem;
+  color: var(--c-muted);
+}
+.ahead-count strong {
+  font-size: 1.1rem;
+  color: var(--c-text);
+}
+
+/* -------------------------------------------------
+   呼出・案内：アラート
+------------------------------------------------- */
+/* 整理番号（大きい表示） */
+.number-display {
+  font-size: 0.9rem;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+/* 整理番号 */
+.number-display span {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 5rem;
+  color: var(--c-text);
+  letter-spacing: 4px;
+  line-height: 1;
+}
+
+/* 「まもなくご案内」「ご案内中」などのステータスバッジ */
+.status-badge-text {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: var(--c-dark);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+/* 呼出アラートカード（黄色系） */
+.call-alert {
+  background: linear-gradient(135deg, var(--c-alert-grad-1), var(--c-alert-grad-2));
+  border: 3px solid var(--c-yellow);
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+}
+
+/* 案内アラートカード（緑系） */
+.call-alert.guide-bg {
+  background: linear-gradient(135deg, var(--c-alert-guide-grad-1), var(--c-alert-guide-grad-2));
+  border-color: var(--c-green);
+}
+
+/* お知らせカード（準備・開始・終了・取消。枠のみで点滅しない） */
+.call-alert.info-bg {
+  background: none;
+  border-color: var(--c-border);
+}
+
+.alert-icon {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+}
+.call-alert h2 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--c-text);
+  margin-bottom: 8px;
+}
+.call-alert p {
+  font-size: 0.9rem;
+  color: var(--c-muted);
+  line-height: 1.6;
+}
+
+/* 「番号が見つかりません」の表示 */
+.status-card p {
+  color: var(--c-muted);
+  font-size: 0.95rem;
+}
+
+/* 「整理番号を変更する」ボタン */
+.change-num-link {
+  background: none;
+  border: 2px dashed var(--c-border);
+  color: var(--c-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  margin-top: 4px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.change-num-link:active {
+  background: var(--c-active-bg);
+}
+
+/* 呼出・案内時のアラートを脈動させる（目立たせる） */
+.highlight-anim {
+  border: 3px solid var(--c-yellow);
+  box-shadow: 0 0 20px rgba(255, 225, 53, 0.4);
+}
+/* =================================================
+  10. 謎解きタブ
+================================================= */
+/* タブ全体の背景 */
+.game-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* クイズカード（他のカードより少し細めのマージン） */
+.quiz-card {
+  background: var(--c-card);
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  margin: 0 15px;
+  height: calc(100% - 40px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 難易度選択 */
+.quiz-card h2 {
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: var(--c-text);
+}
+.quiz-card > p {
+  font-size: 0.85rem;
+  color: var(--c-muted);
+  margin-bottom: 14px;
+}
+
+/*難易度ボタン*/
+.difficulty-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.diff-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.diff-btn:active { 
+  transform: translateY(3px); 
+  box-shadow: 0 1px 0 rgba(0,0,0,0.2); 
+}
+
+.diff-btn.easy   { background: #4caf50; box-shadow: 0 4px 0 #1a9a50; }
+.diff-btn.normal { background: #ff9800; box-shadow: 0 4px 0 #c07d0a; }
+.diff-btn.hard   { background: #f44336; box-shadow: 0 4px 0 #b03a2e; }
+
+/* クイズ回答中のヘッダー（難易度バッジ + やめるボタン） */
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--c-border);
+}
+
+/* 難易度バッジ */
+.diff-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+.diff-badge.easy   { background: #4caf50; }
+.diff-badge.normal { background: #ff9800; }
+.diff-badge.hard   { background: #f44336; }
+
+/* 出題の進行状況（例：3 / 5問） */
+.quiz-progress {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+
+/* 「やめる」ボタン */
+.back-link {
+  background: none;
+  border: 1.5px solid var(--c-border);
+  color: var(--c-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.back-link:active { background: var(--c-active-bg); }
+
+/* クイズ画像 */
+.quiz-image-container {
+  width: 100%;
+  background: var(--c-surface-alt);
+  border-radius: var(--radius-md);
+  margin: 10px 0 14px;/* 問題文との間にスペース */
+  padding: 10px;
+  border: 2px solid var(--c-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.quiz-image {
+  max-width: 100%;/* 親要素の幅に合わせて最大幅 */
+  max-height: 180px;/* 高さも制限して画面に収まるように */
+  border-radius: var(--radius-sm);
+  object-fit: contain;/* 画像全体が表示されるように */
+}
+
+/* 問題文のスタイル */
+.quiz-question {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 18px;/* 選択肢との間にスペース */
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+/* ヒントエリア */
+.quiz-hint-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+.hint-box {
+  background: var(--c-hint-bg);
+  border: 1px solid var(--c-hint-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--c-hint-text);
+  text-align: left;
+}
+.hint-btn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: var(--c-card);
+  border: 2px solid #ffb300;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffb300;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.hint-btn:active {
+  background: var(--c-hint-bg);
+  transform: translateY(1px);
+}
+
+/* 選択式：選択肢ボタン */
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto; /* 選択肢ボタンを下部に配置 */
+}
+.opt-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--c-card);
+  border: 2px solid var(--c-text);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-text);
+  font-family: inherit;
+  transition: all 0.15s;
+  box-shadow: 0 3px 0 var(--c-text);
+}
+.opt-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--c-text);
+  background: var(--c-active-bg);
+}
+
+/* 記述式：テキスト入力 */
+.quiz-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.answer-input {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: var(--c-card);
+  color: var(--c-text);
+  border: 2px solid var(--c-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.answer-input:focus {
+  border-color: var(--c-main);
+  box-shadow: 0 0 0 3px var(--c-main-pale);
+}
+
+/* 結果画面：正解・不正解アイコン */
+.result-icon {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+}
+.result-icon.correct { background: var(--c-result-correct-bg); color: #2ecc71; }
+.result-icon.wrong   { background: var(--c-result-wrong-bg); color: #e74c3c; }
+
+/* 解説文 */
+.explanation-area {
+  background: var(--c-surface-alt);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin: 14px 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--c-muted);
+  text-align: left;
+}
+
+/* 結果画面のボタン群 */
+.result-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* 「次の問題へ」ボタン */
+.next-quiz-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--c-main);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  box-shadow: 0 4px 0 var(--c-shadow);
+  transition: all 0.15s;
+}
+.next-quiz-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--c-shadow);
+}
+
+/* 「もう一度解く」ボタン */
+.retry-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--c-card);
+  border: 1.5px solid var(--c-main);
+  color: var(--c-main);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.retry-btn:active {
+  transform: translateY(2px);
+}
+
+/* 「難易度を変える」ボタン */
+.quit-btn {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1.5px solid var(--c-border);
+  color: var(--c-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+/* =================================================
+    11. 遊び方タブ
+================================================= */
+/*左寄せ*/
+.guide-card {
+  text-align: left;
+}
+.guide-card h2 {
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  color: var(--c-text);
+  border-bottom: 3px solid var(--c-main);
+}
+.guide-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--c-main);
+  margin: 14px 0 6px;
+}
+.guide-card p {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--c-muted);
+}
+
+/* =================================================
+   12. アニメーション
+================================================= */
+
+/* フェードイン（タブ切り替え時） */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* フェードアップ（下からふわっと出る） */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 点滅（テストモードのバッジ） */
+@keyframes blink {
+  50% { opacity: 0.5; }
+}
+
+/* 黄色の脈動（呼出アラート） */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 225, 53, 0.5); }
+  50%       { box-shadow: 0 0 0 12px rgba(255, 225, 53, 0); }
+}
+
+/* 緑の脈動（案内アラート） */
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.5); }
+  50%       { box-shadow: 0 0 0 12px rgba(46, 204, 113, 0); }
+}

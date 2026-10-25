@@ -1,0 +1,99 @@
+/* =====================================================
+   src/shared/components/Tooltip.css
+   ===================================================== */
+
+/* 包み要素：position の基準点になる */
+.tooltip-wrap {
+    position: relative;
+    display: inline-flex;   /* 子要素のサイズに合わせる */
+    align-items: center;
+}
+
+/* 吹き出し本体 */
+.tooltip-bubble {
+    position: absolute;
+    z-index: 9999;
+    background: rgba(30, 30, 30, 0.92);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.45;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;        /* 基本は1行 */
+    max-width: 220px;
+    white-space: normal;        /* 長い場合は折り返す */
+    word-break: keep-all;
+    pointer-events: none;       /* ツールチップ自体はクリック不可 */
+    animation: tooltip-in 0.12s ease-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+@keyframes tooltip-in {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* === 表示位置ごとの配置 === */
+
+/* 上（デフォルト） */
+.tooltip-top {
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+/* 下 */
+.tooltip-bottom {
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+/* 左 */
+.tooltip-left {
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* 右 */
+.tooltip-right {
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* === 三角（矢印） === */
+.tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+}
+
+/* 上向き吹き出しの矢印（下向き三角） */
+.tooltip-top    .tooltip-arrow {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top-color: rgba(30, 30, 30, 0.92);
+}
+/* 下向き吹き出しの矢印（上向き三角） */
+.tooltip-bottom .tooltip-arrow {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-color: rgba(30, 30, 30, 0.92);
+}
+/* 左向き吹き出しの矢印（右向き三角） */
+.tooltip-left   .tooltip-arrow {
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left-color: rgba(30, 30, 30, 0.92);
+}
+/* 右向き吹き出しの矢印（左向き三角） */
+.tooltip-right  .tooltip-arrow {
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-right-color: rgba(30, 30, 30, 0.92);
+}

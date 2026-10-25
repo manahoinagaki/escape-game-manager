@@ -1,0 +1,26 @@
+src/Admin/
+├─ components/
+│  ├─ AdminHeader.tsx
+│  ├─ FocusBar.tsx
+│  ├─ PrepBar.tsx
+│  ├─ RegistrationCard.tsx
+│  ├─ ResultBar.tsx
+│  ├─ RoomBar.tsx
+│  ├─ sideMenu.tsx
+│  └─ TeamGuideBar.tsx
+├─ hooks/
+│  ├─ ComputedData.ts
+│  ├─ CurrentTime.ts
+│  ├─ Firestore.ts
+│  ├─ useLayout.ts
+│  └─ User.ts
+├─ operations/
+│  └─ registration.ts
+├─ utils/
+│  ├─ constants.ts
+│  ├─ formatters.ts
+│  └─ nextNumber.ts
+├─ Admin.css
+├─ Admin.tsx
+├─ ReadMe
+└─ types.ts

@@ -1,0 +1,12 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      // イベント終了後のため、すべての読み書きを拒否しています。
+      // 再び使うときは、Firebase Authentication でログインさせ、
+      // ログインしたスタッフだけが書き込めるルールに作り直してから開けること。
+      // （誰でも読み書きできる allow read, write: if true; には戻さない）
+      allow read, write: if false;
+    }
+  }
+}

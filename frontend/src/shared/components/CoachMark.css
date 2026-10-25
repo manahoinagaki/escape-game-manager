@@ -1,0 +1,128 @@
+/* =====================================================
+   src/shared/components/CoachMark.css
+   ===================================================== */
+
+/* === オーバーレイ（半透明の暗い幕） === */
+.coach-overlay {
+    position: fixed;
+    inset: 0;                          /* top/right/bottom/left 全て 0 */
+    z-index: 10000;
+    /* box-shadow で「穴あき」効果を出す（ハイライト枠より後ろに幕） */
+    background: transparent;
+    pointer-events: none;              /* ハイライト以外は操作を透過 */
+}
+
+/* === ハイライト枠（ターゲット要素を囲む光る枠） === */
+.coach-highlight {
+    position: absolute;
+    z-index: 10001;
+    border-radius: 8px;
+    box-shadow:
+        0 0 0 4px rgba(99, 179, 237, 0.8),       /* 青い光るリング */
+        0 0 0 9999px rgba(0, 0, 0, 0.55);        /* 外側を暗く（穴あき効果） */
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: highlight-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes highlight-pulse {
+    0%,  100% { box-shadow: 0 0 0 4px rgba(99, 179, 237, 0.8),  0 0 0 9999px rgba(0,0,0,0.55); }
+    50%        { box-shadow: 0 0 0 7px rgba(99, 179, 237, 0.35), 0 0 0 9999px rgba(0,0,0,0.55); }
+}
+
+/* === ポップアップ === */
+.coach-popup {
+    position: fixed;
+    z-index: 10002;
+    background: #fff;
+    color: #1a202c;
+    border-radius: 12px;
+    padding: 18px 20px 14px;
+    width: 260px;
+    max-width: calc(100vw - 24px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0,0,0,0.1);
+    pointer-events: all;
+    animation: popup-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popup-in {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* 中央表示（ターゲットなし） */
+.coach-popup-center {
+    top:       50%;
+    left:      50%;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* === ステップ表示 === */
+.coach-step-indicator {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #718096;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+}
+
+/* === タイトル === */
+.coach-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 6px;
+}
+
+/* === 説明文 === */
+.coach-description {
+    font-size: 0.875rem;
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 14px;
+}
+
+/* === ボタン群 === */
+.coach-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.coach-btn {
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+/* 前へ */
+.coach-btn-prev {
+    background: #edf2f7;
+    color: #4a5568;
+    margin-right: auto;       /* 左端に寄せる */
+}
+.coach-btn-prev:hover  { background: #e2e8f0; }
+.coach-btn-prev:active { transform: scale(0.96); }
+
+/* スキップ */
+.coach-btn-skip {
+    background: transparent;
+    color: #a0aec0;
+    font-size: 0.75rem;
+}
+.coach-btn-skip:hover  { color: #718096; }
+
+/* 次へ・完了 */
+.coach-btn-next {
+    background: #3182ce;
+    color: #fff;
+    padding: 7px 18px;
+    box-shadow: 0 2px 6px rgba(49, 130, 206, 0.4);
+}
+.coach-btn-next:hover  { background: #2b6cb0; }
+.coach-btn-next:active { transform: scale(0.96); }

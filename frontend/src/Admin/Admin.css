@@ -1,0 +1,2376 @@
+/* =================================================
+   src/Admin/Admin.css — スタッフ向け管理画面のスタイル
+   =================================================
+ 
+   📋 このファイルの構成
+ 
+     1. デザイントークン（全UI共通変数）
+     2. UIファウンデーション（共通クラス）
+     3. リセット・ベーススタイル
+     4. 画面全体レイアウト
+     5. ヘッダー全体・モード別カラー
+     6. ヘッダー内：メニューボタン（三本線）
+     7. TOP BAR（1段目：操作バー）
+     8. TITLE BAR（2段目：タイトル）
+     9. ヘッダー内動的パーツ
+    10. STATUS TABS（タブバー）
+    11. 検索・絞り込みバー
+    12. サイドメニュー
+    13. ResultBar（統計ダッシュボード）
+    14. RoomBar（全部屋状況）
+    15. PrepBar（準備担当者専用ナビ）
+    16. FocusBar（ステータス確認バー）
+    17. TeamGuideBar（担当チームバー）
+    18. IssueCard（新規発行カード）
+    19. スクロールエリア
+    20. RegistrationCard（登録カード）
+    21. 担当バッジ・引き継ぎボタン
+    22. 2周目バッジ
+    23. モバイル対応
+ 
+   🎨 ステータス別カラー（CSS変数）
+     --c-wait   : #95a5a6（グレー：待機）
+     --c-call   : #f1c40f（黄：呼出）
+     --c-guide  : #2ecc71（緑：案内）
+     --c-prep   : #e74c3c（赤：準備）
+     --c-play   : #3498db（青：開始）
+     --c-end    : #34495e（暗：終了）
+     --c-cancel : #000  （黒：取消）
+ 
+   🔧 よく変更する箇所
+     モード別ヘッダー色  : .header-admin.header-mode-○○ のブロック
+     ステータス別カード色 : .reg-card.row-status-○○ のブロック
+     部屋タグの色        : .room-tag.room-○ のブロック
+     経過時間アラート閾値 : PrepBar・RoomBar のコンポーネント側で変更
+================================================= */
+
+/* =================================================
+   1. デザイントークン（全UI共通変数）
+   ここで定義した変数をファイル全体で使い回す
+================================================= */
+:root {
+  /* ===== カラー ===== */
+  --c-bg:         #f0f2f5;  /* 背景色 */
+  --c-card:       #ffffff;  /* カード背景 */
+  --c-border:     #ddd;     /* 枠線 */
+  --c-text:       #333;     /* 標準テキスト */
+  --c-muted:      #666;     /* 薄いテキスト（補足説明など） */
+  --c-surface-alt:#f8f9fa;  /* カード内の薄い背景 */
+  --c-pill-bg:    rgba(255, 255, 255, 0.7); /* 更新者名など、カード上の半透明ピル */
+
+  /* ステータス別カラー */
+  --c-wait:   #95a5a6;  /* 待機：グレー */
+  --c-call:   #f1c40f;  /* 呼出：黄 */
+  --c-guide:  #2ecc71;  /* 案内：緑 */
+  --c-prep:   #e74c3c;  /* 準備：赤 */
+  --c-play:   #3498db;  /* 開始：青 */
+  --c-end:    #34495e;  /* 終了：暗 */
+  --c-cancel: #000;     /* 取消：黒 */
+
+
+  /* ===== サイズ ===== */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* ===== 影 ===== */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* ===== 余白 ===== */
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 12px;
+  --gap-lg: 20px;
+}
+
+.header-mode-1日目 {
+  --c-main: #7b8cde;
+  --c-shadow: #4a5bbf;
+  --c-main-pale: rgba(123, 140, 222, 0.15);
+}
+
+/* または #cbcbff,#1a1a2e */
+.header-mode-2日目 {
+  --c-main: #e94560;
+  --c-shadow: #b5213d;
+  --c-main-pale: rgba(123, 140, 222, 0.15);
+}
+
+/* または #ecc1ff,#4a0e4e,#d87cee */
+.header-mode-テスト {
+  --c-main: #ff9d00;
+  --c-shadow: #c97a00;
+  --c-main-pale: rgba(255, 157, 0, 0.15);
+}
+
+/* 当日朝のリハーサル用。他モードと見分けがつくよう緑系にする */
+.header-mode-リハーサル {
+  --c-main: #2ecc71;
+  --c-shadow: #22a35a;
+  --c-main-pale: rgba(46, 204, 113, 0.15);
+}
+
+/* =================================================
+   ダークモード（端末の設定に自動追随。トグルなし）
+   ステータス別カラーや部屋タグなど意味を持つ配色はそのまま維持し、
+   背景・カード・枠線・本文テキストといった「地の色」のみ反転させる
+================================================= */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg:         #12141c;
+    --c-card:       #1e2130;
+    --c-border:     #333747;
+    --c-text:       #eef0f5;
+    --c-muted:      #9aa0b4;
+    --c-surface-alt:#262a3a;
+    --c-pill-bg:    rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* =================================================
+   2. UIファウンデーション（共通クラス）
+   複数コンポーネントで使い回す汎用スタイル
+================================================= */
+.ui-card {
+  background: var(--c-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--gap-md);
+}
+
+.ui-row {
+  display: flex;
+  gap: var(--gap-sm);
+}
+
+.ui-row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ui-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-sm);
+}
+
+.ui-label {
+  font-size: 0.75rem;
+  color: var(--c-muted);
+}
+
+.ui-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.ui-btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  font-weight: bold;
+}
+
+/* =================================================
+   3. リセット・ベーススタイル
+================================================= */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN',
+    'Hiragino Sans', sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+
+button {
+  cursor: pointer;
+}
+
+select,
+input {
+  font-family: inherit;
+}
+
+/* =================================================
+   4. 画面全体レイアウト
+   管理画面は画面全体に固定して、スクロールはメインエリアのみ
+================================================= */
+/* 🚀 管理画面専用：全体を画面の高さに固定 */
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  /* スマホ対応 */
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+/* admin-page がある場合、body のスクロールを無効化 */
+body:has(.admin-page) {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* =================================================
+   5. ヘッダー全体・モード別カラー
+================================================= */
+/* 固定ヘッダーの設定 */
+.header-admin {
+  flex-shrink: 0;
+  background: var(--c-card);
+  padding: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  border-bottom: none;
+  transition: all 0.2s ease-in-out;
+  padding-bottom: 5px;
+}
+
+/* --- モード別ヘッダーカラー --- */
+.header-admin.header-mode-1日目 {
+  background: var(--c-main);
+  color: #fff;
+  border-bottom: 2px solid white;
+}
+
+.header-admin.header-mode-2日目 {
+  background: var(--c-main);
+  color: white;
+  border-bottom: 2px solid white;
+}
+
+.header-admin.header-mode-テスト {
+  background: var(--c-main);
+  color: black;
+  border-bottom: 2px solid #ff9d00;
+}
+
+.header-admin.header-mode-リハーサル {
+  background: var(--c-main);
+  color: black;
+  border-bottom: 2px solid #22a35a;
+}
+
+/* テストモードのバッジ点滅アニメーション */
+@keyframes blink {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* =================================================
+   6. ヘッダー内：メニューボタン (三本線)
+================================================= */
+/* .top-group button の余白・白背景に上書きされて線が潰れるため、
+   .top-group を付けて詳細度を上げている。
+   線と枠の色は color から作るので、モード別には color だけ変えればよい */
+.top-group .menu-trigger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin-right: 4px;
+  color: white;
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.menu-trigger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+/* テスト・リハーサルは文字が黒なのでボタン線も黒に */
+.header-mode-テスト .top-group .menu-trigger,
+.header-mode-リハーサル .top-group .menu-trigger {
+  color: #333;
+}
+
+/* =================================================
+   7. TOP BAR（1段目：操作バー）
+   左：メニュー・日付・全削除　右：役割・名前
+================================================= */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.top-group {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.top-group select,
+.top-group button {
+  padding: 8px 4px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 休憩トグルボタン */
+.break-toggle {
+  white-space: nowrap;
+}
+
+.break-toggle.on-break {
+  background: #ffb74d;
+  border: 1px solid #f57c00;
+  color: #4e342e;
+  font-weight: bold;
+}
+
+/* 休憩中スタッフの通知バー */
+.break-notice {
+  font-size: 0.78rem;
+  font-weight: bold;
+  color: #b45309;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 4px 0;
+}
+
+/* =================================================
+   8. TITLE BAR（2段目：タイトル）
+================================================= */
+.title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* =================================================
+   9. ヘッダー内動的パーツ
+   レイアウト設定で 'header' に設定されたコンポーネントが表示される
+================================================= */
+.header-dynamic {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  /* ヘッダーは縮まないため、中身が多いと画面外にはみ出して見切れる。
+     高さに上限を設け、超えた分はこの中でスクロールさせる */
+  max-height: 45vh;
+  max-height: 45dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header-part {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* =================================================
+   10. STATUS TABS（タブバー）
+   横スクロール可。選択中タブは青・浮き上がり効果
+================================================= */
+.status-tabs {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 12px 5px;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+.status-tabs button {
+  padding: 8px 14px;
+  border: none;
+  /* border: 1px solid #ccc; */
+  background: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-radius: 6px;
+  font-weight: bold;
+  color: inherit;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 選択中タブ */
+.status-tabs button.active {
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+/* =================================================
+   10-b. ヘッダーのダークモード
+   モードの見分けがつくよう色味は残したまま、背景を暗くして
+   文字・ボタン線を白に統一する。下線にモード色を使う
+================================================= */
+@media (prefers-color-scheme: dark) {
+  .header-admin.header-mode-1日目 {
+    background: #2a3060;
+  }
+
+  .header-admin.header-mode-2日目 {
+    background: #5a1a28;
+  }
+
+  .header-admin.header-mode-テスト {
+    background: #5c3a00;
+  }
+
+  .header-admin.header-mode-リハーサル {
+    background: #14522f;
+  }
+
+  .header-admin[class*="header-mode-"] {
+    color: var(--c-text);
+    border-bottom: 2px solid var(--c-main);
+  }
+
+  /* 背景が暗くなるのでテスト・リハーサルのボタン線も白に戻す */
+  .header-mode-テスト .top-group .menu-trigger,
+  .header-mode-リハーサル .top-group .menu-trigger {
+    color: white;
+  }
+
+  .top-group select,
+  .top-group button {
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--c-text);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* color を明示すると無効状態のグレー表示が消えるため、透過で表す */
+  .top-group select:disabled,
+  .top-group button:disabled {
+    opacity: 0.5;
+  }
+
+  .break-notice {
+    color: #ffcc80;
+    background: rgba(255, 183, 77, 0.15);
+    border: 1px solid #8a5a1a;
+  }
+
+  .status-tabs {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* =================================================
+   10-c. ヘッダーのスマホ縦向け対応
+   TOP BAR が1行に収まらず画面幅を超えるため、
+   左グループ／右グループの2行に折り返す
+================================================= */
+@media (max-width: 600px) {
+  /* Admin.tsx と AdminHeader.tsx で header が二重になっているため、
+     内側の余白・影・下線を消して横幅を確保する */
+  .header-admin .header-admin {
+    padding: 0;
+    box-shadow: none;
+    border-bottom: none;
+  }
+
+  .header-admin {
+    padding: 8px;
+  }
+
+  .top-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .top-group {
+    min-width: 0;
+  }
+
+  /* 収まらないときは右グループが2行目に回り、幅いっぱいに広がる */
+  .top-group.right {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .top-group.right select {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .top-group button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* ヘッダー内に置いたパーツが幅を押し広げないようにする */
+  .header-dynamic,
+  .header-part {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .status-tabs {
+    padding: 8px 5px;
+    margin-top: 6px;
+  }
+}
+
+/* =================================================
+   11. 検索・絞り込みバー
+================================================= */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--c-card);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+/* 番号入力エリア */
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--c-surface-alt);
+  border-radius: 6px;
+  padding: 4px 8px;
+  flex: 1;
+  min-width: 100px;
+}
+
+.search-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: bold;
+  width: 100%;
+  outline: none;
+  color: var(--c-text);
+}
+
+/* number input の矢印を非表示 */
+.search-input::-webkit-inner-spin-button,
+.search-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+/* セレクトボックス */
+.search-select {
+  padding: 6px 8px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  background: var(--c-surface-alt);
+  color: var(--c-text);
+  flex-shrink: 0;
+}
+
+.search-select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+/* クリアボタン */
+.search-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-clear-btn:active {
+  background: #c0392b;
+}
+
+/* TeamGuideBar の検索行（共通スタイルここに集約） */
+.guide-search-row {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.guide-search-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  outline: none;
+}
+
+.guide-search-input:focus {
+  border-color: #3498db;
+}
+
+/* number input 矢印非表示 */
+.guide-search-input::-webkit-inner-spin-button,
+.guide-search-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.guide-search-btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #3498db;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.guide-search-btn:active {
+  background: #2874a6;
+}
+
+/* 検索結果なし */
+.guide-search-notfound {
+  font-size: 0.82rem;
+  color: #e74c3c;
+  padding: 4px 2px;
+}
+
+/* 検索結果カード */
+.guide-search-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--c-card);
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.guide-search-result-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.guide-search-status-badge {
+  font-size: 0.72rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--c-surface-alt);
+  color: var(--c-muted);
+}
+
+.guide-search-assigned-warn {
+  font-size: 0.72rem;
+  color: #e67e22;
+  font-weight: bold;
+}
+
+/* 担当するボタン */
+.guide-select-btn.assign {
+  background: #2ecc71;
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* リストラベル */
+.guide-list-label {
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: var(--c-muted);
+  margin: 8px 0 4px;
+}
+
+/* 呼出中一覧ボタン */
+.guide-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-card);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.guide-select-btn:hover,
+.guide-select-btn:active {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+.guide-select-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 担当ボタン色追加 */
+.guide-btn-call {
+  background: #f1c40f;
+  color: #000;
+}
+
+.guide-btn-guide {
+  background: #2ecc71;
+  color: #fff;
+}
+
+.guide-btn-prep {
+  background: #e67e22;
+  color: #fff;
+}
+
+.guide-btn-play {
+  background: #3498db;
+  color: #fff;
+}
+
+.guide-btn-end {
+  background: #34495e;
+  color: #fff;
+}
+
+/* =================================================
+   12. サイドメニュー（左からスライドイン）
+================================================= */
+/* 背景の暗い幕 */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* メニュー本体 */
+.side-menu-panel {
+  width: 280px;
+  height: 100%;
+  background: var(--c-card);
+  color: var(--c-text);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  animation: slideInLeft 0.3s ease-out;
+  overflow-y: auto;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* サイドメニュー：ヘッダー */
+.side-menu-header {
+  margin-bottom: 20px;
+}
+
+.profile-block {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  background: #1a1a2e;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.user-meta {
+  flex: 1;
+}
+
+.user-role {
+  font-size: 0.7rem;
+  color: var(--c-muted);
+  margin-bottom: 4px;
+}
+
+.user-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--c-text);
+  margin: 0;
+}
+
+/* サイドメニュー：ボディ */
+.side-menu-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.menu-group {
+  margin-bottom: 20px;
+}
+
+.menu-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+
+.menu-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--c-card);
+  color: var(--c-text);
+}
+
+/* 並び順トグル */
+.toggle-row {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-row button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface-alt);
+  border-radius: 6px;
+  font-weight: bold;
+  color: var(--c-muted);
+}
+
+.toggle-row button.active {
+  background: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+/* レイアウト設定 */
+.layout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.layout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: var(--c-surface-alt);
+  border-radius: 6px;
+}
+
+.layout-name {
+  font-size: 0.85rem;
+  color: var(--c-text);
+}
+
+/* 表示位置ごとのグループ（上・タブ・非表示） */
+.layout-group {
+  margin-top: 8px;
+  padding: 6px;
+  border: 1px dashed transparent;
+  border-radius: 8px;
+}
+
+/* ドラッグ中、ドロップ先になっているグループ */
+.layout-group.drop-active {
+  border-color: #1976d2;
+  background: rgba(25, 118, 210, 0.06);
+}
+
+.layout-group-title {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+}
+
+/* 非表示だけ横並び（上・タブは縦一列） */
+.layout-list-none {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.layout-empty {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  border: 1px dashed var(--c-border);
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* ドラッグできる項目
+   touch-action: none … 指でドラッグしてもメニューがスクロールしないようにする */
+.layout-list .layout-row,
+.layout-ghost {
+  justify-content: flex-start;
+  gap: 6px;
+  border: 1px solid var(--c-border);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.layout-grip {
+  color: var(--c-muted);
+  font-size: 0.8rem;
+}
+
+/* ドラッグ元の項目 */
+.layout-row.dragging {
+  opacity: 0.35;
+}
+
+/* ドロップ位置の目印（縦並び：上下の線 / 横並び：左右の線） */
+.layout-list-header .layout-row.drop-before,
+.layout-list-tab .layout-row.drop-before {
+  box-shadow: 0 -3px 0 #1976d2;
+}
+
+.layout-list-header .layout-row.drop-after,
+.layout-list-tab .layout-row.drop-after {
+  box-shadow: 0 3px 0 #1976d2;
+}
+
+.layout-list-none .layout-row.drop-before {
+  box-shadow: -3px 0 0 #1976d2;
+}
+
+.layout-list-none .layout-row.drop-after {
+  box-shadow: 3px 0 0 #1976d2;
+}
+
+/* ドラッグ中、指に追従する項目 */
+.layout-ghost {
+  position: fixed;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  cursor: grabbing;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.layout-row select {
+  width: auto;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  background: var(--c-card);
+  color: var(--c-text);
+}
+
+/* サイドメニュー：フッター */
+.side-menu-footer {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--c-border);
+}
+
+.btn-close {
+  width: 100%;
+  padding: 12px;
+  background: var(--c-surface-alt);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  font-weight: bold;
+  color: var(--c-text);
+  margin-bottom: 10px;
+}
+
+.btn-reset {
+  width: 100%;
+  padding: 10px;
+  background: var(--c-card);
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.btn-reset:active {
+  background: #ff4444;
+  color: #fff;
+}
+
+/* =================================================
+   13. ResultBar（統計ダッシュボード）
+================================================= */
+.result-bar {
+  background: var(--c-surface-alt);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.result-section {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.result-section.stats-section {
+  border-bottom: 1px dashed var(--c-border);
+  margin-bottom: 8px;
+}
+
+.result-card {
+  flex: 1;
+  text-align: center;
+}
+
+.card-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--c-muted);
+  margin-bottom: 4px;
+}
+
+.card-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--c-text);
+}
+
+.card-value small {
+  font-size: 0.7rem;
+  color: var(--c-muted);
+  margin-left: 2px;
+}
+
+/* -------------------------------------------------
+   13-b. ヘッダー固定時のスマホ表示
+   「23. モバイル対応」でカードが縦1列になり高さが出るため、
+   ヘッダー内では3列×2段のまま余白・文字を詰める
+------------------------------------------------- */
+@media (max-width: 600px) {
+  .header-dynamic .result-bar {
+    padding: 4px 6px;
+    margin-bottom: 0;
+  }
+
+  .header-dynamic .result-section {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 3px 0;
+  }
+
+  .header-dynamic .result-section.stats-section {
+    margin-bottom: 3px;
+  }
+
+  .header-dynamic .result-card {
+    min-width: 0;
+  }
+
+  .header-dynamic .result-card .card-label {
+    font-size: 0.62rem;
+    line-height: 1.2;
+    margin-bottom: 1px;
+  }
+
+  .header-dynamic .result-card .card-value {
+    font-size: 1rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .header-dynamic .result-card .card-value small {
+    font-size: 0.62rem;
+    margin-left: 1px;
+  }
+}
+
+/* =================================================
+   14. RoomBar（全部屋状況）
+   モード別背景色あり
+================================================= */
+.room-bar {
+  padding: 8px;
+  border-bottom: 3px solid #444;
+  color: white;
+}
+
+.header-mode-1日目 .room-bar {
+  background: #cbcbff;
+}
+
+.header-mode-2日目 .room-bar {
+  background: #ecc1ff;
+}
+
+.header-mode-テスト .room-bar {
+  background: #ff9d00;
+  color: #333;
+}
+
+.header-mode-リハーサル .room-bar {
+  background: #2ecc71;
+  color: #333;
+}
+
+.room-bar-title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: white;
+  text-align: center;
+}
+
+/* 全部屋を横並びに */
+.all-rooms-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+/* 各部屋セクション */
+.single-room-section {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  min-width: 0;
+}
+
+/* 部屋名ヘッダー */
+.room-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.room-icon {
+  font-size: 1rem;
+}
+
+.room-name {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+}
+
+/* ステータス行 */
+.room-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.room-status-row:last-child {
+  margin-bottom: 0;
+}
+
+.status-label {
+  min-width: 52px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #ffd700;
+  flex-shrink: 0;
+}
+
+/* 情報ボックス */
+.room-info-box {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.room-info-box.empty {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.empty-text {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* チーム情報 */
+.room-team-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-no {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+}
+
+.team-meta {
+  font-size: 0.78rem;
+  color: #ffd700;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* 経過時間 */
+.room-elapsed {
+  font-size: 0.78rem;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+/* ボタン — コンパクト */
+.room-btn {
+  align-self: flex-start;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: transform 0.1s;
+}
+
+.room-btn:active {
+  transform: scale(0.95);
+}
+
+.room-btn.start {
+  background: #28a745;
+  color: white;
+}
+
+.room-btn.finish {
+  background: #dc3545;
+  color: white;
+}
+
+/* 案内中・準備中のチーム割り当てエリア（PrepBarから統合） */
+.room-bar-assign        { 
+  margin-top: 10px; 
+  padding-top: 10px; 
+  border-top: 1px solid rgba(255,255,255,0.2); 
+}
+.room-bar-assign-title  { 
+  font-size: 0.78rem; 
+  font-weight: bold; 
+  margin-bottom: 8px; 
+  opacity: 0.9; 
+}
+
+/* スマホ対応 */
+@media (max-width: 600px) {
+  .room-status-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .status-label {
+    padding-top: 0;
+  }
+}
+
+/* -------------------------------------------------
+   14-b. ヘッダー固定時のスマホ表示
+   ヘッダーに置くと縦に長くなり画面からはみ出すため、
+   余白・文字を詰めて高さを抑える
+------------------------------------------------- */
+@media (max-width: 600px) {
+  .header-dynamic .room-bar {
+    padding: 6px;
+    border-bottom-width: 2px;
+  }
+
+  /* タイトルは省略して高さを節約 */
+  .header-dynamic .room-bar-title {
+    display: none;
+  }
+
+  .header-dynamic .all-rooms-container {
+    gap: 4px;
+  }
+
+  .header-dynamic .single-room-section {
+    padding: 5px;
+  }
+
+  .header-dynamic .room-header {
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+  }
+
+  .header-dynamic .room-icon {
+    display: none;
+  }
+
+  .header-dynamic .room-name {
+    font-size: 0.8rem;
+  }
+
+  .header-dynamic .room-elapsed-inline {
+    font-size: 0.7rem;
+  }
+
+  .header-dynamic .room-status-row {
+    align-items: stretch;
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+
+  .header-dynamic .status-label {
+    min-width: 0;
+    font-size: 0.68rem;
+  }
+
+  .header-dynamic .room-info-box,
+  .header-dynamic .room-info-box.empty {
+    padding: 4px 5px;
+    gap: 3px;
+  }
+
+  /* 幅が狭いので番号と人数・難易度は折り返す */
+  .header-dynamic .room-team-info {
+    flex-wrap: wrap;
+    gap: 2px 4px;
+  }
+
+  .header-dynamic .team-no {
+    font-size: 0.9rem;
+  }
+
+  .header-dynamic .team-meta {
+    font-size: 0.66rem;
+    padding: 1px 4px;
+  }
+
+  .header-dynamic .empty-text {
+    font-size: 0.75rem;
+  }
+
+  .header-dynamic .room-btn {
+    align-self: stretch;
+    padding: 4px 6px;
+    font-size: 0.78rem;
+  }
+
+  .header-dynamic .room-bar-assign {
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+
+  .header-dynamic .room-bar-assign-title {
+    font-size: 0.7rem;
+    margin-bottom: 4px;
+  }
+
+  .header-dynamic .assign-list {
+    gap: 4px;
+  }
+
+  .header-dynamic .assign-card {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .header-dynamic .assign-info {
+    min-width: 0;
+  }
+
+  .header-dynamic .t-main {
+    flex-wrap: wrap;
+    gap: 0 6px;
+  }
+
+  .header-dynamic .t-no {
+    font-size: 0.9rem;
+  }
+
+  .header-dynamic .assign-actions {
+    flex-shrink: 0;
+  }
+
+  .header-dynamic .assign-btn {
+    padding: 5px 10px;
+  }
+
+  .header-dynamic .none-msg {
+    padding: 4px;
+    font-size: 0.75rem;
+  }
+}
+
+/* =================================================
+   15. PrepBar（準備担当者専用ナビ）
+================================================= */
+.prep-bar {
+  padding: 10px;
+  border-bottom: 4px solid #1a252f;
+  color: white;
+}
+
+.header-mode-1日目 .prep-bar {
+  background: #cbcbff;
+}
+
+.header-mode-2日目 .prep-bar {
+  background: #ecc1ff;
+}
+
+.header-mode-テスト .prep-bar {
+  background: #ff9d00;
+  color: #333;
+}
+
+.header-mode-リハーサル .prep-bar {
+  background: #2ecc71;
+  color: #333;
+}
+
+.prep-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.prep-title {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.prep-finishedWithTime {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.prep-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 部屋モニター */
+.room-view {
+  display: flex;
+  gap: 10px;
+}
+
+.room-card {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  border-bottom: 5px solid transparent;
+}
+
+.room-card.is-playing {
+  border-color: #e74c3c;
+}
+
+.room-card.is-preparing {
+  border-color: #f1c40f;
+}
+
+.room-card.is-empty {
+  border-color: #2ecc71;
+  opacity: 0.6;
+}
+
+.room-card-header {
+  margin-bottom: 5px;
+}
+
+.room-name {
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.room-card-body {
+  text-align: center;
+}
+
+.room-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-info .s-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.room-info .s-no {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.room-info.empty {
+  color: #bdc3c7;
+}
+
+.room-time {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  opacity: 0.8;
+}
+
+.room-time.alert {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+/* 割り当てエリア */
+.prep-assign {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.assign-header {
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.assign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assign-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--c-card);
+  color: var(--c-text);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.assign-card.is-assigned {
+  background: #e3f2fd;
+}
+
+.assign-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.t-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.t-no {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.t-meta {
+  font-size: 0.75rem;
+  color: var(--c-muted);
+}
+
+.assigned-room-name {
+  font-size: 0.7rem;
+  color: #1976d2;
+  font-weight: bold;
+}
+
+.assign-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.assign-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #3498db;
+  color: white;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.assign-btn.active {
+  background: #f1c40f;
+  color: #000;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.none-msg {
+  text-align: center;
+  padding: 10px;
+  color: #bdc3c7;
+  font-size: 0.85rem;
+}
+
+/* =================================================
+   16. FocusBar（ステータス確認バー）
+================================================= */
+.focus-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 10px 0;
+  width: 100%;
+  background: var(--c-card);
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.focus-card {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  background: var(--c-surface-alt);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--c-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  min-width: 0;
+}
+
+.focus-card.calling {
+  background: #fffde7;
+  color: #856404;
+  border-top: 4px solid #f1c40f;
+}
+
+.focus-card.guiding {
+  background: #e8f5e9;
+  color: #155724;
+  border-top: 4px solid #2ecc71;
+}
+
+.focus-card.playing {
+  background: #e3f2fd;
+  color: #004085;
+  border-top: 4px solid #3498db;
+}
+
+.focus-card .card-label {
+  font-size: 0.75rem;
+  font-weight: bold;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.focus-card .card-value {
+  font-size: 0.95rem;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -------------------------------------------------
+   16-b. ヘッダー固定時のスマホ表示
+   休憩中の通知バー（.break-notice）と同じくらいの高さに抑えるため、
+   ラベルと番号を横1行に並べ、外枠・余白をなくす
+------------------------------------------------- */
+@media (max-width: 600px) {
+  .header-dynamic .focus-bar {
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .header-dynamic .focus-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 6px;
+    border-top-width: 2px;
+    border-radius: 6px;
+    box-shadow: none;
+  }
+
+  .header-dynamic .focus-card .card-label {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    margin-bottom: 0;
+  }
+
+  .header-dynamic .focus-card .card-value {
+    min-width: 0;
+    font-size: 0.78rem;
+  }
+}
+
+/* =================================================
+   17. TeamGuideBar（担当チームバー）
+================================================= */
+.guide-select-header  { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.guide-select-label   { font-size: 0.8rem; color: var(--c-muted); font-weight: bold; }
+.guide-select-no      { font-size: 1rem; font-weight: 900; color: var(--c-text); }
+.guide-select-meta    { font-size: 0.75rem; color: var(--c-muted); background: var(--c-surface-alt); padding: 1px 6px; border-radius: 4px; }
+.guide-no-team        { font-size: 0.85rem; color: var(--c-muted); padding: 6px 0; }
+/* バー全体の枠。担当チームのステータス色（--guide-color）を薄く敷き、左の太線で強調する */
+.team-guide-bar {
+    --guide-color: var(--c-wait);
+    background: color-mix(in srgb, var(--guide-color) 14%, var(--c-card));
+    border: 1.5px solid color-mix(in srgb, var(--guide-color) 45%, var(--c-card));
+    border-left: 6px solid var(--guide-color);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    color: var(--c-text);
+    box-shadow: var(--shadow-sm);
+}
+.team-guide-bar.status-呼出 { --guide-color: var(--c-call); }
+.team-guide-bar.status-案内 { --guide-color: var(--c-guide); }
+.team-guide-bar.status-準備 { --guide-color: var(--c-prep); }
+.team-guide-bar.status-開始 { --guide-color: var(--c-play); }
+.guide-user-tag       { font-size: 0.78rem; font-weight: bold; color: var(--c-muted); }
+
+/* 担当チームの情報行（No. / 人数・難易度 / ステータス）。背景は currentColor から作るのでライト・ダーク共通 */
+.guide-team-details   { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 2px 0 6px; }
+.guide-no             { font-size: 1.25rem; font-weight: 900; line-height: 1.1; }
+.guide-meta           { font-size: 0.78rem; font-weight: bold; padding: 2px 8px; border-radius: 5px; background: color-mix(in srgb, currentColor 15%, transparent); white-space: nowrap; }
+.guide-status-badge   { font-size: 0.75rem; font-weight: bold; padding: 1px 8px; border-radius: 5px; border: 1px solid currentColor; white-space: nowrap; }
+.guide-elapsed        { font-size: 0.85rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+.guide-actions        { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.guide-release-btn    { border: 1px solid var(--c-border); border-radius: 5px; background: var(--c-surface-alt); color: var(--c-muted); font-size: 0.72rem; padding: 3px 8px; cursor: pointer; }
+.guide-release-btn:active { background: var(--c-border); }
+ 
+/* 部屋選択ピッカー（案内→を押したあとに展開） */
+.guide-room-picker          { background: #f0f7ff; border: 2px solid #90cdf4; border-radius: 10px; padding: 10px 12px; margin: 8px 0; animation: picker-in 0.18s ease-out; }
+@keyframes picker-in        { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.guide-room-picker-title    { font-size: 0.82rem; font-weight: bold; color: #2b6cb0; margin-bottom: 8px; }
+.guide-room-picker-btns     { display: flex; gap: 8px; margin-bottom: 8px; }
+.guide-room-picker-btn      { flex: 1; padding: 10px 0; border: none; border-radius: 8px; font-size: 1rem; font-weight: 900; color: #fff; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+.guide-room-picker-btn:active { transform: scale(0.95); box-shadow: none; }
+.guide-room-picker-btn.room-A { background: #e74c3c; }
+.guide-room-picker-btn.room-B { background: #3498db; }
+.guide-room-picker-btn.room-C { background: #2ecc71; }
+ 
+/* 使用中・準備中の部屋ボタン（押せない状態） */
+.guide-room-picker-btn.occupied {
+    background: #b0bec5 !important;  /* グレーで上書き */
+    box-shadow: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+/* ボタン内の部屋名・使用状況テキスト */
+.picker-room-name   { display: block; font-size: 1rem; font-weight: 900; }
+.picker-room-status { display: block; font-size: 0.68rem; font-weight: normal; margin-top: 2px; opacity: 0.9; }
+ 
+.guide-room-picker-cancel   { width: 100%; padding: 6px; background: transparent; border: 1px solid var(--c-border); border-radius: 6px; color: var(--c-muted); font-size: 0.78rem; cursor: pointer; }
+.guide-room-picker-cancel:active { background: var(--c-surface-alt); }
+ 
+/* 担当バー内の部屋バッジ（準備・開始で表示） */
+.guide-room-badge           { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 0.75rem; font-weight: bold; color: #fff; margin-left: 2px; }
+.guide-room-badge.room-A    { background: #e74c3c; }
+.guide-room-badge.room-B    { background: #3498db; }
+.guide-room-badge.room-C    { background: #2ecc71; }
+
+/* =================================================
+   17-b. ヘッダー内パーツのダークモード
+   淡い背景を直接指定している箇所は、文字色だけが明るく切り替わって
+   「明るい背景に明るい文字」になるため、背景側を暗くして文字を明るくする
+================================================= */
+@media (prefers-color-scheme: dark) {
+  /* --- FocusBar：ステータス色は残し、暗い地に明るい番号 --- */
+  .focus-card.calling {
+    background: #3a3210;
+    color: #ffe27a;
+  }
+
+  .focus-card.guiding {
+    background: #12361f;
+    color: #8ee6ae;
+  }
+
+  .focus-card.playing {
+    background: #12304d;
+    color: #9cd0ff;
+  }
+
+  /* 共通の .card-label / .card-value の色指定より、カードの色を優先する */
+  .focus-card .card-label,
+  .focus-card .card-value {
+    color: inherit;
+  }
+
+  /* --- RoomBar / PrepBar：モード別の明るい背景をやめ、暗いパネルにする --- */
+  [class*="header-mode-"] .room-bar,
+  [class*="header-mode-"] .prep-bar {
+    background: var(--c-card);
+    color: var(--c-text);
+  }
+
+  .empty-text {
+    color: #b5bac8;
+  }
+
+  .assign-card.is-assigned,
+  .guide-select-btn:hover,
+  .guide-select-btn:active {
+    background: #173a5c;
+  }
+
+  .assigned-room-name {
+    color: #7cc0ff;
+  }
+
+  /* --- TeamGuideBar --- */
+  .guide-room-picker {
+    background: #14283d;
+    border-color: #2b6cb0;
+  }
+
+  .guide-room-picker-title {
+    color: #90cdf4;
+  }
+
+  /* 色付きヘッダーに直接乗る補足テキストは、グレーだと沈むので白寄りにする */
+  .header-admin .guide-list-label,
+  .header-admin .guide-no-team {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* =================================================
+   18. IssueCard（新規発行カード）
+================================================= */
+.new-cord {
+  background: var(--c-card);
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #4caf50;
+  margin: 8px 0;
+}
+
+.issue-settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.issue-target {
+  display: flex;
+  flex-direction: column;
+}
+
+.next-label {
+  font-size: 0.7rem;
+  color: var(--c-muted);
+}
+
+.next-number {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--c-text);
+}
+
+.issue-selectors {
+  display: flex;
+  gap: 8px;
+}
+
+.select-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.select-level label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: var(--c-muted);
+  margin-bottom: 4px;
+}
+
+.select-level select {
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-card);
+  color: var(--c-text);
+}
+
+/* 発行ボタン（押し込み感のある影付き） */
+.add-btn {
+  width: 100%;
+  padding: 12px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #388e3c;
+  background: linear-gradient(to bottom, #4caf50, #388e3c);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.add-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #388e3c;
+}
+
+/* 押した瞬間に色を濃くする（非活性時は変えない） */
+.add-btn:active:not(:disabled) {
+  background: linear-gradient(to bottom, #2e7d32, #1b5e20);
+  box-shadow: 0 1px 0 #1b5e20;
+}
+
+/* =================================================
+   19. スクロールエリア
+================================================= */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px;
+  background: var(--c-bg);
+}
+
+/* スクロール内のパーツ調整 */
+.scroll-area>.result-bar,
+.scroll-area>.room-bar,
+.scroll-area>.prep-bar,
+.scroll-area>.focus-bar,
+.scroll-area>.new-cord {
+  margin-bottom: 15px;
+  background: var(--c-card);
+  color: var(--c-text) !important;
+  border: 1px solid var(--c-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.scroll-area .box-no,
+.scroll-area .room-area,
+.scroll-area .card-value {
+  color: var(--c-text) !important;
+}
+
+/* =================================================
+   20. RegistrationCard（登録カード）
+   ステータスによって左枠の色が変わる
+   🔧 色を変えたい場合は .reg-card.row-status-○○ を変更
+================================================= */
+.reg-card {
+  width: 100%;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border-left: 10px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: var(--c-card);
+  color: var(--c-text);
+  padding: 12px;
+  border-left-width: 12px;
+  transition: transform 0.1s;
+}
+
+.reg-card:active {
+  transform: scale(0.98);
+  /* 押した感触 */
+}
+
+/* ステータス別左枠色 */
+.reg-card.row-status-待機 { border-left-color: #95a5a6; }
+.reg-card.row-status-呼出 { border-left-color: #f1c40f; background: #fffde7; }
+.reg-card.row-status-案内 { border-left-color: #2ecc71; background: #e8f5e9; }
+.reg-card.row-status-準備 { border-left-color: #f92525; }
+.reg-card.row-status-開始 { border-left-color: #3498db; background: #ebf5fb; }
+.reg-card.row-status-終了 { border-left-color: #34495e; background: #f2f4f4; opacity: 0.8; }
+.reg-card.row-status-取消 { border-left-color: #000;    background: #d5dbdb; opacity: 0.7; }
+
+/* カードヘッダー */
+.reg-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.reg-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-check {
+  width: 24px;
+  height: 24px;
+}
+
+.reg-no {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--c-text);
+}
+
+/* 部屋タグ（🔧 部屋を増やす場合は .room-tag.room-○ を追加） */
+.room-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.room-tag.room-A {
+  background: #e74c3c;
+}
+.room-tag.room-B {
+  background: #3498db;
+}
+.room-tag.room-C {
+  background: #2ecc71;
+}
+
+/* 人数・難易度セレクト */
+.reg-settings {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-select {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 6px;
+  border: 2px solid var(--c-border);
+  background: var(--c-card);
+  color: var(--c-text);
+}
+
+/* カードボディ */
+.reg-card-body {
+  position: relative;
+  padding-bottom: 20px;
+}
+
+/* ステータスボタンをより大きく、押しやすく */
+.reg-actions-main {
+  gap: 10px;
+  /* 指が隣のボタンに触れないように */
+}
+
+.reg-actions-left {
+  margin-bottom: 8px;
+}
+
+.back-status-btn {
+  width: 100%;
+  padding: 6px;
+  background: var(--c-surface-alt);
+  border: 1px dashed var(--c-border);
+  border-radius: 6px;
+  color: var(--c-muted);
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.back-status-btn:active {
+  background: var(--c-border);
+}
+
+.back-status-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ステータスボタン群（3列グリッド） */
+.reg-actions-main {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.status-btn {
+  padding: 12px 4px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  border-radius: 8px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-card);
+  color: var(--c-text);
+  white-space: nowrap;
+  height: 48px;
+  /* モバイルのタップターゲット(最小48px)に合わせる */
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 現在のステータスを強調表示 */
+.status-btn.btn-active {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.btn-呼出.btn-active {
+  background: #f1c40f;
+  border-color: #d4ac0d;
+  color: #000;
+}
+
+.btn-案内.btn-active {
+  background: #2ecc71;
+  color: #fff;
+  border-color: #239b56;
+}
+
+.btn-準備.btn-active {
+  background: #db3434;
+  color: #fff;
+  border-color: #a62828;
+}
+
+.btn-開始.btn-active {
+  background: #3498db;
+  color: #fff;
+  border-color: #2874a6;
+}
+
+.btn-終了.btn-active {
+  background: #34495e;
+  color: #fff;
+  border-color: #212f3d;
+}
+
+.btn-取消.btn-active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+/* 最終更新者名（右下小文字） */
+.reg-updated-by {
+  position: absolute;
+  right: 5px;
+  bottom: 2px;
+  font-size: 0.6rem;
+  color: var(--c-muted);
+  background: var(--c-pill-bg);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-style: italic;
+}
+
+/* =================================================
+   21. 担当バッジ・引き継ぎボタン
+================================================= */
+/* 担当バッジ（カードヘッダー内） */
+.assigned-badge {
+  font-size: 0.68rem;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.assigned-badge.mine {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.assigned-badge.other {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+
+/* 担当スタッフが休憩中の場合の警告表示 */
+.assigned-badge.other.assignee-on-break {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* 引き継ぎボタン */
+.takeover-btn {
+  padding: 5px 10px;
+  border: 1.5px solid #3498db;
+  border-radius: 6px;
+  background: var(--c-card);
+  color: #3498db;
+  font-size: 0.78rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all 0.15s;
+}
+
+.takeover-btn:active {
+  background: #3498db;
+  color: #fff;
+}
+
+/* reg-actions-left を横並びに調整 */
+.reg-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.back-status-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =================================================
+   22. 2周目バッジ（81番以上の整理券に表示）
+================================================= */
+.next-cycle-note {
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #fff;
+  background: #e67e22;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* =================================================
+   22-b. 登録カードのダークモード
+   ステータス別の淡い背景は文字（白系）と重なって読めなくなるため、
+   同じ色味の暗い背景に置き換える。左枠の色はそのまま
+================================================= */
+@media (prefers-color-scheme: dark) {
+  .reg-card.row-status-呼出 { background: #3a3210; }
+  .reg-card.row-status-案内 { background: #12361f; }
+  .reg-card.row-status-開始 { background: #12304d; }
+  .reg-card.row-status-終了 { background: #262a3a; }
+  .reg-card.row-status-取消 { background: #16181f; }
+}
+
+/* =================================================
+   23. モバイル対応
+================================================= */
+@media (max-width: 600px) {
+  .focus-bar {
+    flex-direction: row;
+  }
+
+  .result-section {
+    flex-direction: column;
+  }
+
+  .room-place {
+    flex-direction: column;
+  }
+
+  /* 部屋ステータス行を縦並びに */
+  .room-status-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

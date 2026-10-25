@@ -1,0 +1,14 @@
+{
+  "name": "escape-game-manager",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "イベント後に登録データをCSVへ書き出すスクリプト（export-registrations.mjs）用",
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
+  }
+}
